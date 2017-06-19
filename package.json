@@ -23,5 +23,11 @@
   "bugs": {
     "url": "https://github.com/amnisH2/h2-server-push/issues"
   },
-  "homepage": "https://github.com/amnisH2/h2-server-push#readme"
+  "homepage": "https://github.com/amnisH2/h2-server-push#readme",
+  "dependencies": {
+    "html-static-asset-path-extractor": "^1.0.3"
+  },
+  "devDependencies": {
+    "debug": "^2.6.8"
+  }
 }
