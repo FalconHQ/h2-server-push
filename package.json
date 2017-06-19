@@ -1,0 +1,27 @@
+{
+  "name": "h2-server-push",
+  "version": "1.0.0",
+  "description": "HTTP2 Server Push Express Middleware",
+  "main": "themiddleware.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amnisH2/h2-server-push.git"
+  },
+  "keywords": [
+    "http2",
+    "h2",
+    "express",
+    "node",
+    "server",
+    "push"
+  ],
+  "author": "Liyang <wangliyang88@gmail.com> (https://github.com/amnisH2/speedy-push)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/amnisH2/h2-server-push/issues"
+  },
+  "homepage": "https://github.com/amnisH2/h2-server-push#readme"
+}
