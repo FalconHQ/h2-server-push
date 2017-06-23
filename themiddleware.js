@@ -5,18 +5,6 @@ const path = require('path')
 let parsedObj = {};
 
 
-// const readFileAsync = (filepath) => {
-//     return new Promise((resolve, reject) => {
-//         fs.readFile(filepath, (err, data) => {
-//             if (err) {
-//                 reject(err);
-//             } else {
-//                 resolve(data);
-//             }
-//         })
-//     })
-// }
-
 const pushSingle = (res, resource) => {
     return new Promise((resolve, reject) => {
         const {filePath, contentType} = resource
@@ -28,26 +16,12 @@ const pushSingle = (res, resource) => {
         debug('Path for createReadStream', path.join(__dirname, '../..', filePath))
         fs.createReadStream(path.join(__dirname, '../..', filePath)).pipe(pushStream);
 
-        // readFileAsync(filePath)
-        // .then(file => {
-        //     let pushStream = res.push('/' + filePath, {
-        //         req: { 'accept' : '**/*'},
-        //         res: {'content-type' : contentType}
-        //     }, (file) => resolve({ value: file, status: "resolved"}))
-        //     pushStream.end(file)
-        // }, (error) => resolve({value:error, status: "rejected"}))
-        // .catch(err => {
-        //     debug('err', err)
-        //     return Promise.reject(res);
-        // })
     })
 }
 
 const spParser = (req, res, next) => {
     const sp = (htmlPath) => {
         extractor(htmlPath).then((resources) => {
-        // debug('Resources', resources)
-        // const resources =  [ {filePath: 'awesum.jpg', contentType: 'img/jpeg'}, {filePath: 'salt.jpg', contentType: 'img/jpeg'} ]
         const PromiseArr = resources.map(cur => pushSingle(res, cur))
         debug('PromiseArr', PromiseArr)
 
