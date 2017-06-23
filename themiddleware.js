@@ -2,18 +2,20 @@ const debug = require('debug')('spParser')
 const fs = require('fs')
 const extractor = require('html-static-asset-path-extractor')
 const path = require('path')
+let parsedObj = {};
 
-const readFileAsync = (filepath) => {
-    return new Promise((resolve, reject) => {
-        fs.readFile(filepath, (err, data) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(data);
-            }
-        })
-    })
-}
+
+// const readFileAsync = (filepath) => {
+//     return new Promise((resolve, reject) => {
+//         fs.readFile(filepath, (err, data) => {
+//             if (err) {
+//                 reject(err);
+//             } else {
+//                 resolve(data);
+//             }
+//         })
+//     })
+// }
 
 const pushSingle = (res, resource) => {
     return new Promise((resolve, reject) => {
@@ -66,4 +68,18 @@ const spParser = (req, res, next) => {
     next()
 }
 
-module.exports = spParser;
+const preParse = (folder) => {
+  let htmlObj = fs.readdirSync(folder).filter(file => path.extname(file) === '.html' ? true : false);
+  let mapped = htmlObj.map(paths => {
+    return extractor(path.join(__dirname , '../..' , folder, paths));
+  });
+  Promise.all(mapped).then((paths => {
+        parsedObj = paths.reduce((acc, resourcemap, currindex) => {
+        acc[htmlObj[currindex]] = resourcemap;
+        return acc;
+    }, {})
+    console.log('PARSEDOBJ', parsedObj)
+  }))
+}
+
+module.exports = {preParse, spParser};
