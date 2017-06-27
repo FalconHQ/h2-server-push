@@ -69,4 +69,4 @@ const spParser = (folder) => {
 
 
 
-module.exports = {preParse, spParser};
+module.exports = {spParser};
