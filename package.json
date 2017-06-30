@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/amnisH2/h2-server-push#readme",
   "dependencies": {
+    "golombcodedsets-with-base64": "0.0.4",
     "html-static-asset-path-extractor": "^1.0.5"
   },
   "devDependencies": {

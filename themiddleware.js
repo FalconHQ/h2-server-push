@@ -2,21 +2,23 @@ const debug = require('debug')('spParser')
 const fs = require('fs')
 const extractor = require('html-static-asset-path-extractor')
 const path = require('path')
+const gcs = require('golombcodedsets-with-base64')
 
 let parsedObj = {};
 
-const pushSingle = (res, resource) => {
+const pushSingle = (res, resource, rootPath) => {
     return new Promise((resolve, reject) => {
         const {filePath, contentType} = resource
         if (!res.push) reject(new Error('NO SPDY'))
         let pushStream = res.push('/' + filePath, {
-            req: {'accept' : '**/*'},
-            res: {'content-type' : contentType}
+            request: {'accept' : '**/*'},
+            response: {
+                'content-type' : contentType,
+                'cache-control': 'max-age=31536000, public'
+            }
         }, (file) => resolve({ value: file, status: "resolved"}))
-        debug('Path for createReadStream', path.join(__dirname, '../speedy-push', filePath))
         //make sure to switch '../speedy-push' to '../..' once using real node module
-
-        fs.createReadStream(path.join(__dirname, '../speedy-push', filePath)).pipe(pushStream);
+        fs.createReadStream(path.join(__dirname, '../speedy-push', rootPath, filePath)).pipe(pushStream);
 
     })
 }
@@ -36,22 +38,45 @@ const preParse = (folder) => {
   }))
 }
 
-
 const spParser = (folder) => {
     preParse(folder)
 
     return registerParser = (req, res, next) => {
-
         const sp = (htmlPath, folderPath = "") => {
-            debug("htmlPath", htmlPath, "parsedObj", parsedObj)
+            let cacheHash = req.cookies.cache || undefined;
+            //if we have a resource map for the html file we want to push
             if(parsedObj[htmlPath]) {
+                //array to store assets that arent cached yet
+                let resources = []
+                let setBuilder;
+                //decide what to push based on cookie hash
+                if(!cacheHash) {
+                    resources = parsedObj[htmlPath];
+                    setBuilder = new gcs.GCSBuilder(50, 1000)
+                    resources.forEach((resource)=>{
+                        setBuilder.add(resource.filePath)
+                    })
+                } else {
+                    //create queriable set from cookie hash
+                    let setQuery = new gcs.GCSQuery(cacheHash)
+                    setBuilder = setQuery.toBuilder()
+                    
+                    //leave only missing assets 
+                    parsedObj[htmlPath].forEach((resource)=>{
+                       if(!setQuery.query(resource.filePath)) {
+                            resources.push(resource)
+                            setBuilder.add(resource.filePath)
+                       }
+                    })
+                }
 
-                debug("PATH EXISTS~~")
-                let resources = parsedObj[htmlPath];
-                const PromiseArr = resources.map(cur => pushSingle(res, cur))
+                debug("RESOURCES:", resources)
+                const PromiseArr = resources.map(cur => pushSingle(res, cur, folderPath))
                 
                 Promise.all(PromiseArr)
-                .then((files)=> {  
+                .then((files)=> { 
+                    //update cookie with new cache hash
+                    res.cookie('cache', setBuilder.toBase64()) 
                     const html = fs.createReadStream(path.join(folderPath, htmlPath));
                     html.pipe(res);
                 })
@@ -67,6 +92,4 @@ const spParser = (folder) => {
     }
 }
 
-
-
-module.exports = {spParser};
+module.exports = spParser;
