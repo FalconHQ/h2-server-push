@@ -6,19 +6,47 @@ const gcs = require('golombcodedsets-with-base64')
 
 let parsedObj = {};
 
+const readFileAsync = (filepath) => {
+    return new Promise((resolve, reject) => {
+        fs.readFile(filepath, (err, data) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(data);
+            }
+        })
+    })
+}
+
 const pushSingle = (res, resource, rootPath) => {
     return new Promise((resolve, reject) => {
         const {filePath, contentType} = resource
-        if (!res.push) reject(new Error('NO SPDY'))
-        let pushStream = res.push('/' + filePath, {
-            request: {'accept' : '**/*'},
-            response: {
-                'content-type' : contentType,
-                'cache-control': 'max-age=31536000, public'
-            }
-        }, (file) => resolve({ value: file, status: "resolved"}))
-        //make sure to switch '../speedy-push' to '../..' once using real node module
-        fs.createReadStream(path.join(__dirname, '../speedy-push', rootPath, filePath)).pipe(pushStream);
+        readFileAsync(path.join(__dirname, '../speedy-push', rootPath, filePath))
+        .then(file => {
+            let pushStream = res.push('/' + filePath, {
+                request: {'accept' : '**/*'},
+                response: {
+                    'content-type' : contentType,
+                    'cache-control': 'max-age=31536000, public'
+                }
+            }, (file) => resolve({ value: file, status: "resolved"}))
+            pushStream.end(file)
+        }, (error) => resolve({value:error, status: "rejected"}))
+        .catch(err => {
+            debug('err', err)
+            return Promise.reject(res);
+        })
+        // const {filePath, contentType} = resource
+        // if (!res.push) reject(new Error('NO SPDY'))
+        // let pushStream = res.push('/' + filePath, {
+        //     request: {'accept' : '**/*'},
+        //     response: {
+        //         'content-type' : contentType,
+        //         'cache-control': 'max-age=31536000, public'
+        //     }
+        // }, (file) => resolve({ value: file, status: "resolved"}))
+        // //make sure to switch '../speedy-push' to '../..' once using real node module
+        // fs.createReadStream(path.join(__dirname, '../speedy-push', rootPath, filePath)).pipe(pushStream);
 
     })
 }
