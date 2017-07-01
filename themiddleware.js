@@ -5,6 +5,7 @@ const path = require('path')
 const gcs = require('golombcodedsets-with-base64')
 
 let parsedObj = {};
+const parentPath = process.env.DEBUG ? '../speedy-push' : '../..' 
 
 const readFileAsync = (filepath) => {
     return new Promise((resolve, reject) => {
@@ -21,7 +22,7 @@ const readFileAsync = (filepath) => {
 const pushSingle = (res, resource, rootPath) => {
     return new Promise((resolve, reject) => {
         const {filePath, contentType} = resource
-        readFileAsync(path.join(__dirname, '../speedy-push', rootPath, filePath))
+        readFileAsync(path.join(__dirname, parentPath, rootPath, filePath))
         .then(file => {
             let pushStream = res.push('/' + filePath, {
                 request: {'accept' : '**/*'},
@@ -55,7 +56,7 @@ const preParse = (folder) => {
   let htmlObj = fs.readdirSync(folder).filter(file => path.extname(file) === '.html' ? true : false);
   let mapped = htmlObj.map(paths => {
       //make sure to switch '../speedy-push' to  '../..' once using real node module from /node_modules folder
-    return extractor(path.join(__dirname ,'../speedy-push', folder, paths));
+    return extractor(path.join(__dirname ,parentPath, folder, paths));
   });
   Promise.all(mapped).then((paths => {
         parsedObj = paths.reduce((acc, resourcemap, currindex) => {
