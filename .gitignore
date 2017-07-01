@@ -125,4 +125,6 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+package-lock.json
+
 # End of https://www.gitignore.io/api/node,macos,linux,windows
