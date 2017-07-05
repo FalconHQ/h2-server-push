@@ -14,8 +14,10 @@ __Note__: Requires `node-spdy` for HTTP2
 ```javascript
 const hsp = require('h2-server-push');
 
-app.get('/', hsp,  (req, res) => {
-    res.sp('index.html')
+const registerParser = hsp('public');
+
+app.get('/', registerParser,  (req, res) => {
+    res.sp('index.html', 'public')
 });
 ```
 
